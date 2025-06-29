@@ -4,6 +4,7 @@ import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TextInput, Touc
 import { useDebouncedCallback } from 'use-debounce';
 import { getCachedTopGainersLosers, searchTicker } from '../api/alphaVantage';
 
+// Stock interface for type safety
 interface Stock {
   name: string;
   price: string;
@@ -12,9 +13,9 @@ interface Stock {
   change: string;
 }
 
+// Component to render stock logo or fallback image
 function StockLogo({ uri }: { uri: string }) {
   const fallback = require('../../assets/images/stock-placeholder.png');
-  // If uri is a local require, use it directly
   if (!uri || typeof uri !== 'string' || uri === 'placeholder') {
     return <Image source={fallback} style={styles.logo} />;
   }
@@ -27,8 +28,9 @@ function StockLogo({ uri }: { uri: string }) {
   );
 }
 
-
+// Main ExploreScreen component
 export default function ExploreScreen() {
+  // State variables for search, gainers, losers, loading, and errors
   const [search, setSearch] = useState('');
   const navigation = useNavigation();
   const [gainers, setGainers] = useState<Stock[]>([]);
@@ -39,6 +41,7 @@ export default function ExploreScreen() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState('');
 
+  // Debounced search for ticker symbols
   const debouncedSearch = useDebouncedCallback(async (query: string) => {
     if (!query || query.length < 2) {
       setSearchResults([]);
@@ -53,10 +56,6 @@ export default function ExploreScreen() {
         setSearchResults(results.bestMatches);
       } else {
         setSearchResults([]);
-        // Remove API limit or demo key restriction error message
-        // if (results && results.Information) {
-        //   setSearchError('API limit or demo key restriction.');
-        // }
       }
     } catch {
       setSearchError('Search failed.');
@@ -65,6 +64,7 @@ export default function ExploreScreen() {
     setSearchLoading(false);
   }, 400);
 
+  // Set up the search bar in the header
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
@@ -82,12 +82,14 @@ export default function ExploreScreen() {
     });
   }, [navigation, search, debouncedSearch]);
 
+  // Fetch top gainers and losers on mount
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
       setError('');
       try {
         const data = await getCachedTopGainersLosers();
+        // Helper to map API data to Stock interface
         function mapStock(s: any): Stock {
           return {
             name: s.name || s.symbol || s.ticker || '',
@@ -113,6 +115,7 @@ export default function ExploreScreen() {
     fetchData();
   }, []);
 
+  // Helper to update stock images using Financial Modeling Prep
   async function updateStockImages(stocks: Stock[]) {
     return await Promise.all(
       stocks.map(async (stock) => {
@@ -127,10 +130,12 @@ export default function ExploreScreen() {
     );
   }
 
+  // Main render
   return (
     <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
       <View style={styles.container}>
         {loading ? (
+          // Loading indicator
           <View style={[styles.loadingContainer, { flex: 1, minHeight: 700 }]}> 
             <ActivityIndicator size="large" color="#007AFF" style={{ marginBottom: 16 }} />
             <Text style={styles.loadingText}>Loading...</Text>
@@ -148,7 +153,6 @@ export default function ExploreScreen() {
                   <Text style={{ color: '#8E8E93', padding: 12 }}>No results</Text>
                 ) : (
                   searchResults.slice(0, 6).map((item) => (
-                    // Fix: use correct object-based href for Expo Router dynamic routes
                     <Link key={item['1. symbol'] || item.symbol} href={{ pathname: '/details/[symbol]', params: { symbol: (item['1. symbol'] || item.symbol) } }} asChild>
                       <TouchableOpacity
                         style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: '#F2F2F7' }}
@@ -165,6 +169,7 @@ export default function ExploreScreen() {
                 )}
               </View>
             )}
+            {/* Error message if data fails to load */}
             {error ? (
               <Text style={{ color: '#FF3B30', textAlign: 'center', marginVertical: 16 }}>{error}</Text>
             ) : null}
@@ -190,7 +195,6 @@ export default function ExploreScreen() {
                         </View>
                         <Text style={styles.stockSymbol}>{stock.symbol}</Text>
                         <Text style={styles.stockPrice}>{stock.price}</Text>
-                        
                       </TouchableOpacity>
                     </Link>
                   </View>
@@ -232,6 +236,7 @@ export default function ExploreScreen() {
   );
 }
 
+// Styles for the ExploreScreen and its components
 const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,

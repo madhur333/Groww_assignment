@@ -5,20 +5,25 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCachedTopGainersLosers } from '../api/alphaVantage';
 
+// Number of stocks per page
 const PAGE_SIZE = 10;
 
+// Stock type for type safety
 interface Stock {
   name: string;
   price: string;
 }
 
+// Main ViewAllPage component for paginated gainers/losers
 export default function ViewAllPage() {
+  // Get type (gainers/losers) from route params
   const { type } = useLocalSearchParams();
   const [data, setData] = useState<Stock[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);
 
+  // Fetch all gainers/losers data on mount or when type changes
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
@@ -46,10 +51,12 @@ export default function ViewAllPage() {
     fetchData();
   }, [type]);
 
+  // Calculate pagination
   const title = type === 'gainers' ? 'All Top Gainers' : 'All Top Losers';
   const totalPages = Math.max(1, Math.ceil(data.length / PAGE_SIZE));
   const paginated = data.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
+  // Main render
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#F4F4F4' }}>
       <StatusBar style="dark" backgroundColor="#fff" />
@@ -68,6 +75,7 @@ export default function ViewAllPage() {
             {!loading && !error && paginated.length === 0 && (
               <Text style={styles.noDataText}>No data available.</Text>
             )}
+            {/* Render paginated stock cards */}
             {paginated.map((stock) => (
               <Link key={stock.name} href={{ pathname: '/details/[symbol]', params: { symbol: stock.name } }} asChild>
                 <TouchableOpacity style={styles.cardWrapper}>
@@ -78,6 +86,7 @@ export default function ViewAllPage() {
                 </TouchableOpacity>
               </Link>
             ))}
+            {/* Pagination controls */}
             <View style={styles.paginationRow}>
               <TouchableOpacity
                 style={[styles.pageBtn, page === 1 && styles.disabledBtn]}
@@ -102,6 +111,7 @@ export default function ViewAllPage() {
   );
 }
 
+// Styles for the ViewAllPage and its components
 const styles = StyleSheet.create({
   container: {
     flex: 1,

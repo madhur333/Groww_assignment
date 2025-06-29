@@ -9,7 +9,6 @@ const blue = '#007AFF';
 const green = '#00C853';
 
 export default function RootLayout() {
-  // Custom tab bar with divider
   const CustomTabBar = ({ state, descriptors, navigation }: any) => (
     <View style={{ flexDirection: 'row', backgroundColor: green, height: 48, borderTopWidth: 1, borderTopColor: '#e0e0e0' }}>
       {state.routes.map((route: any, index: number) => {

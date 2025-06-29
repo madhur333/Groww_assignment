@@ -48,7 +48,6 @@ export async function searchTicker(keywords) {
   return data;
 }
 
-// Generic cache helper
 async function getCachedTimeSeries(symbol, type, fn) {
   const key = `av_timeseries_${type}_${symbol}`;
   const now = Date.now();

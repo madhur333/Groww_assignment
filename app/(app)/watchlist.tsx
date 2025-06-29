@@ -4,23 +4,27 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+// Main WatchlistScreen component
 export default function WatchlistScreen() {
+  // State for watchlist groups and selected group
   const [groups, setGroups] = useState<{ [group: string]: string[] }>({});
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const router = useRouter();
 
+  // Load watchlist groups from AsyncStorage on mount
   useEffect(() => {
     const loadGroups = async () => {
       try {
         const data = await AsyncStorage.getItem('WATCHLIST_GROUPS');
         if (data) setGroups(JSON.parse(data));
       } catch {
-        // handle error
+        // error handling (optional)
       }
     };
     loadGroups();
   }, []);
 
+  // Delete a group from watchlist
   const deleteGroup = async (group: string) => {
     Alert.alert(
       'Delete Group',
@@ -40,6 +44,7 @@ export default function WatchlistScreen() {
     );
   };
 
+  // Render a single group row
   const renderGroup = ({ item }: { item: string }) => (
     <View style={styles.groupRow}>
       <TouchableOpacity style={styles.groupBtn} onPress={() => setSelectedGroup(item)}>
@@ -51,12 +56,14 @@ export default function WatchlistScreen() {
     </View>
   );
 
+  // Render a single stock in a group
   const renderStock = ({ item }: { item: string }) => (
     <TouchableOpacity style={styles.stockBtn} onPress={() => router.push({ pathname: '/details/[symbol]', params: { symbol: item } })}>
       <Text style={styles.stockName}>{item}</Text>
     </TouchableOpacity>
   );
 
+  // Show empty state if no groups exist
   if (!Object.keys(groups).length) {
     return (
       <View style={styles.center}>
@@ -66,6 +73,7 @@ export default function WatchlistScreen() {
     );
   }
 
+  // Show stocks in selected group
   if (selectedGroup) {
     return (
       <View style={[styles.center, { paddingTop: 16, paddingBottom: 16 }]}>
@@ -86,6 +94,7 @@ export default function WatchlistScreen() {
     );
   }
 
+  // Show all groups
   return (
     <View style={{ flex: 1, backgroundColor: '#F7F7F7' }}>
       <View style={styles.center}>
@@ -100,6 +109,7 @@ export default function WatchlistScreen() {
   );
 }
 
+// Styles for the WatchlistScreen and its components
 const styles = StyleSheet.create({
   center: {
     justifyContent: 'center',

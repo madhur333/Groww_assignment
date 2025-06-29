@@ -8,8 +8,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Polyline } from 'react-native-svg';
 import { getCachedTimeSeriesDaily, getCachedTimeSeriesIntraday, getCachedTimeSeriesMonthly, getCachedTimeSeriesWeekly, getCompanyOverview } from '../api/alphaVantage';
 
+// Key for storing watchlist groups in AsyncStorage
 const STORAGE_KEY = 'WATCHLIST_GROUPS';
 
+// Type for company overview data
 interface CompanyOverview {
   Symbol: string;
   Name?: string;
@@ -27,6 +29,7 @@ interface CompanyOverview {
   [key: string]: any;
 }
 
+// Timeframe options for the chart
 const TIMEFRAMES = [
   { label: '1D', value: '1d' },
   { label: '1W', value: '1w' },
@@ -35,9 +38,10 @@ const TIMEFRAMES = [
   { label: '1Y', value: '1y' },
 ];
 
+// Main details page for a stock/ETF
 export default function DetailsPage() {
+  // Get symbol from route params
   const params = useLocalSearchParams();
-  // Ensure symbol is always a string
   let symbol = params.symbol;
   if (Array.isArray(symbol)) {
     symbol = symbol[0];
@@ -46,6 +50,7 @@ export default function DetailsPage() {
     symbol = 'IBM'; // fallback
   }
 
+  // State for modal, watchlist, company data, chart data, etc.
   const [modalVisible, setModalVisible] = useState(false);
   const [watchlistGroups, setWatchlistGroups] = useState<string[]>([]);
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
@@ -60,6 +65,7 @@ export default function DetailsPage() {
   const [monthlyData, setMonthlyData] = useState<any>(null);
   const [intradayData, setIntradayData] = useState<any>(null);
 
+  // Load watchlist groups and selected groups for this symbol
   useEffect(() => {
     if (!symbol) return;
     const loadData = async () => {
@@ -83,6 +89,7 @@ export default function DetailsPage() {
     loadData();
   }, [symbol]);
 
+  // Fetch company overview data
   useEffect(() => {
     if (!symbol) return;
     async function fetchCompany() {
@@ -100,6 +107,7 @@ export default function DetailsPage() {
     fetchCompany();
   }, [symbol]);
 
+  // Fetch time series data for chart
   useEffect(() => {
     if (!symbol) return;
     async function fetchTimeSeries() {
@@ -121,6 +129,7 @@ export default function DetailsPage() {
     fetchTimeSeries();
   }, [symbol]);
 
+  // Save updated watchlist groups to AsyncStorage
   const saveData = async (updated: { [group: string]: string[] }) => {
     try {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
@@ -131,6 +140,7 @@ export default function DetailsPage() {
     }
   };
 
+  // Add a new group to the watchlist
   const addGroup = () => {
     if (newGroup && !watchlistGroups.includes(newGroup)) {
       const updated = { ...groupStocks, [newGroup]: [] };
@@ -139,6 +149,7 @@ export default function DetailsPage() {
     }
   };
 
+  // Toggle stock in a group (add/remove)
   const toggleGroup = (group: string) => {
     if (!symbol) return;
     const updated = { ...groupStocks };
@@ -156,6 +167,7 @@ export default function DetailsPage() {
     );
   };
 
+  // Reload watchlist data when modal closes
   useEffect(() => {
     if (!modalVisible && symbol) {
       const reload = async () => {
@@ -178,6 +190,7 @@ export default function DetailsPage() {
     }
   }, [modalVisible, symbol]);
 
+  // Parse time series data for chart rendering
   function parseTimeSeriesData(data: any, count?: number): number[] {
     if (!data) {
       return [];
@@ -198,6 +211,7 @@ export default function DetailsPage() {
     return arr.reverse();
   }
 
+  // Chart component for price history
   const Chart = React.memo(function Chart({
     selectedTimeframe,
     intradayData,
@@ -286,6 +300,7 @@ export default function DetailsPage() {
     );
   });
 
+  // Main render
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
       <StatusBar style="dark" />
@@ -355,6 +370,7 @@ export default function DetailsPage() {
                 </View>
               </View>
             )}
+            {/* Modal for adding/removing from watchlist groups */}
             <Modal
               visible={modalVisible}
               animationType="slide"
@@ -405,6 +421,7 @@ export default function DetailsPage() {
   );
 }
 
+// Styles for the details page and its components
 const styles = StyleSheet.create({
   container: {
     justifyContent: 'flex-start',

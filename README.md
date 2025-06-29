@@ -96,7 +96,7 @@ This is a feature-rich Android application for a stocks/ETFs broking platform, b
 | ![Explore](assets/images/screenshot_explore.png) | ![Details](assets/images/screenshot_details.png) | ![Watchlist](assets/images/screenshot_watchlist.png) |
 
 **Demo Video:**
-- [App Walkthrough (Google Drive)](https://drive.google.com/file/d/17Lq1nnOTetpAo-3qzNIKzFsXFEj0wB/view?usp=drivesdk)
+- [App Walkthrough (Google Drive)](https://drive.google.com/file/d/17Lq1nnOTetpAo-_3qzNIKzFsXFEj0wB_/view?usp=drivesdk)
 
 
 **APK Download:**

@@ -107,4 +107,3 @@ This is a feature-rich Android application for a stocks/ETFs broking platform, b
 
 
 
->>>>>>> d5ac9e7b933bc14390c0dbcba5c5ad77bf47c159

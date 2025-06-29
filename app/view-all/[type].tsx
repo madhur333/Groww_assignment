@@ -1,0 +1,205 @@
+import { Link, useLocalSearchParams } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { getCachedTopGainersLosers } from '../api/alphaVantage';
+
+const PAGE_SIZE = 10;
+
+interface Stock {
+  name: string;
+  price: string;
+}
+
+export default function ViewAllPage() {
+  const { type } = useLocalSearchParams();
+  const [data, setData] = useState<Stock[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true);
+      setError('');
+      try {
+        const apiData = await getCachedTopGainersLosers();
+        let stocks: any[] = [];
+        if (type === 'gainers') {
+          stocks = apiData.top_gainers || [];
+        } else if (type === 'losers') {
+          stocks = apiData.top_losers || [];
+        }
+        setData(
+          stocks.map((s: any) => ({
+            name: s.ticker || s.symbol || s.name,
+            price: s.price || s.close || '$--',
+          }))
+        );
+      } catch {
+        setError('Failed to load data. Please try again.');
+        setData([]);
+      }
+      setLoading(false);
+    }
+    fetchData();
+  }, [type]);
+
+  const title = type === 'gainers' ? 'All Top Gainers' : 'All Top Losers';
+  const totalPages = Math.max(1, Math.ceil(data.length / PAGE_SIZE));
+  const paginated = data.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#F4F4F4' }}>
+      <StatusBar style="dark" backgroundColor="#fff" />
+      {loading ? (
+        <View style={[styles.loadingContainer, { flex: 1, minHeight: 700 }]}>
+          <ActivityIndicator size="large" color="#007AFF" style={{ marginBottom: 16 }} />
+          <Text style={styles.loadingText}>Loading...</Text>
+        </View>
+      ) : (
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+          <View style={styles.container}>
+            <Text style={styles.heading}>{title}</Text>
+            {error ? (
+              <Text style={styles.errorText}>{error}</Text>
+            ) : null}
+            {!loading && !error && paginated.length === 0 && (
+              <Text style={styles.noDataText}>No data available.</Text>
+            )}
+            {paginated.map((stock) => (
+              <Link key={stock.name} href={{ pathname: '/details/[symbol]', params: { symbol: stock.name } }} asChild>
+                <TouchableOpacity style={styles.cardWrapper}>
+                  <View style={styles.card}>
+                    <Text style={styles.stockSymbol}>{stock.name}</Text>
+                    <Text style={styles.stockPrice}>{stock.price}</Text>
+                  </View>
+                </TouchableOpacity>
+              </Link>
+            ))}
+            <View style={styles.paginationRow}>
+              <TouchableOpacity
+                style={[styles.pageBtn, page === 1 && styles.disabledBtn]}
+                onPress={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+              >
+                <Text style={styles.pageBtnText}>Previous</Text>
+              </TouchableOpacity>
+              <Text style={styles.pageInfo}>{`Page ${page} of ${totalPages}`}</Text>
+              <TouchableOpacity
+                style={[styles.pageBtn, page === totalPages && styles.disabledBtn]}
+                onPress={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+              >
+                <Text style={styles.pageBtnText}>Next</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      )}
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#ffffff',
+    marginHorizontal: 16,
+  },
+  heading: {
+    fontSize: 24,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginVertical: 20,
+    color: '#2A2A2A',
+  },
+  cardWrapper: {
+    width: '100%',
+    marginBottom: 20,
+  },
+  card: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 18,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: '#E1E1E1',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  stockSymbol: {
+    fontSize: 18,
+    fontWeight: '500',
+    color: '#333333',
+  },
+  stockPrice: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#007AFF',
+    backgroundColor: '#E1F5FE',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#007AFF',
+  },
+  errorText: {
+    color: '#FF3B30',
+    textAlign: 'center',
+    marginVertical: 20,
+    fontSize: 16,
+  },
+  noDataText: {
+    color: '#A1A1A1',
+    textAlign: 'center',
+    marginVertical: 20,
+    fontSize: 16,
+  },
+  paginationRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 24,
+    gap: 16,
+  },
+  pageBtn: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  disabledBtn: {
+    backgroundColor: '#D1D1D1',
+  },
+  pageBtnText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  pageInfo: {
+    marginHorizontal: 8,
+    fontSize: 16,
+    color: '#333333',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: 700,
+    width: '100%',
+    backgroundColor: '#F4F4F4',
+  },
+  loadingText: {
+    fontSize: 18,
+    color: '#8E8E93',
+    fontWeight: '600',
+  },
+});

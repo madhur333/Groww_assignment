@@ -2,11 +2,87 @@ import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from "expo-router";
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { SearchProvider, useSearchContext } from '../api/SearchContext';
 
 const blue = '#007AFF';
 const green = '#00C853';
+
+// Custom header with title/search input and search/cancel icon
+const CustomHeader = ({
+  title,
+  showSearchIcon,
+}: {
+  title: string;
+  showSearchIcon?: boolean;
+}) => {
+  const { showSearch, setShowSearch, searchValue, setSearchValue } = useSearchContext();
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        width: '100%',
+        paddingHorizontal: 16,
+        height: 56,
+        backgroundColor: blue,
+      }}
+    >
+      {showSearch ? (
+        <TextInput
+          autoFocus
+          value={searchValue}
+          onChangeText={setSearchValue}
+          placeholder="Search stocks..."
+          placeholderTextColor="#e0e0e0"
+          style={{
+            flex: 1,
+            backgroundColor: '#fff',
+            borderRadius: 8,
+            paddingHorizontal: 12,
+            fontSize: 16,
+            height: 38,
+          }}
+        />
+      ) : (
+        <Text
+          style={{
+            color: '#fff',
+            fontSize: 18,
+            fontWeight: '700',
+            flex: 1,
+            textAlign: 'left',
+          }}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {title}
+        </Text>
+      )}
+      {showSearchIcon && (
+        <TouchableOpacity
+          onPress={() => {
+            if (showSearch) {
+              setShowSearch(false);
+              setSearchValue('');
+            } else {
+              setShowSearch(true);
+            }
+          }}
+          style={{ marginLeft: 16 }}
+        >
+          <Ionicons
+            name={showSearch ? 'close' : 'search'}
+            size={24}
+            color="#fff"
+          />
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+};
 
 export default function RootLayout() {
   const CustomTabBar = ({ state, descriptors, navigation }: any) => (
@@ -51,35 +127,42 @@ export default function RootLayout() {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-      <StatusBar style="dark" />
-      <Tabs
-        tabBar={CustomTabBar}
-        screenOptions={{
-          headerStyle: { backgroundColor: blue, height: 56 },
-          headerTitleStyle: { fontSize: 18, fontWeight: '700', textAlignVertical: 'center' },
-          headerTintColor: '#fff',
-        }}
-      >
-        <Tabs.Screen
-          name="index"
-          options={{
-            title: "Stocks",
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="trending-up" color={color} size={size} />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="watchlist"
-          options={{
-            title: "Watchlist",
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="bookmark" color={color} size={size} />
-            ),
-          }}
-        />
-      </Tabs>
-    </SafeAreaView>
+    <SearchProvider>
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+        <StatusBar style="dark" />
+        <Tabs
+          tabBar={CustomTabBar}
+          screenOptions={({ route }) => ({
+            header: () => {
+              const isWatchlist = route.name === 'watchlist';
+              const title = isWatchlist ? 'Watchlist' : 'Stocks';
+              return (
+                <CustomHeader
+                  title={title}
+                  showSearchIcon={!isWatchlist}
+                />
+              );
+            },
+          })}
+        >
+          <Tabs.Screen
+            name="index"
+            options={{
+              tabBarIcon: ({ color, size }) => (
+                <Ionicons name="trending-up" color={color} size={size} />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="watchlist"
+            options={{
+              tabBarIcon: ({ color, size }) => (
+                <Ionicons name="bookmark" color={color} size={size} />
+              ),
+            }}
+          />
+        </Tabs>
+      </SafeAreaView>
+    </SearchProvider>
   );
 }

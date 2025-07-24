@@ -1,8 +1,10 @@
-import { Link, useNavigation } from 'expo-router';
-import { useEffect, useLayoutEffect, useState } from 'react';
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { Link } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useDebouncedCallback } from 'use-debounce';
 import { getCachedTopGainersLosers, searchTicker } from '../api/alphaVantage';
+import { useSearchContext } from '../api/SearchContext';
 
 // Stock interface for type safety
 interface Stock {
@@ -30,9 +32,10 @@ function StockLogo({ uri }: { uri: string }) {
 
 // Main ExploreScreen component
 export default function ExploreScreen() {
-  // State variables for search, gainers, losers, loading, and errors
-  const [search, setSearch] = useState('');
   const navigation = useNavigation();
+  const { searchValue, setSearchValue } = useSearchContext();
+
+  // State variables for gainers, losers, loading, and errors
   const [gainers, setGainers] = useState<Stock[]>([]);
   const [losers, setLosers] = useState<Stock[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,24 +66,6 @@ export default function ExploreScreen() {
     }
     setSearchLoading(false);
   }, 400);
-
-  // Set up the search bar in the header
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <TextInput
-          placeholder="Search stocks..."
-          placeholderTextColor="#8E8E93"
-          value={search}
-          onChangeText={text => {
-            setSearch(text);
-            debouncedSearch(text);
-          }}
-          style={[styles.searchInput, { marginTop: -15 }]}
-        />
-      ),
-    });
-  }, [navigation, search, debouncedSearch]);
 
   // Fetch top gainers and losers on mount
   useEffect(() => {
@@ -130,6 +115,11 @@ export default function ExploreScreen() {
     );
   }
 
+  // Debounced search effect
+  useEffect(() => {
+    debouncedSearch(searchValue);
+  }, [searchValue, debouncedSearch]);
+
   // Main render
   return (
     <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -143,7 +133,7 @@ export default function ExploreScreen() {
         ) : (
           <>
             {/* Search Results Dropdown */}
-            {search.length > 1 && (
+            {searchValue.length > 1 && (
               <View style={{ backgroundColor: '#fff', borderRadius: 10, marginBottom: 12, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 8, elevation: 2 }}>
                 {searchLoading ? (
                   <ActivityIndicator size="small" color="#007AFF" style={{ margin: 12 }} />
@@ -157,7 +147,7 @@ export default function ExploreScreen() {
                       <TouchableOpacity
                         style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: '#F2F2F7' }}
                         onPress={() => {
-                          setSearch('');
+                          setSearchValue('');
                           setSearchResults([]);
                         }}
                       >

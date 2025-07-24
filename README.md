@@ -100,11 +100,4 @@ This is a feature-rich Android application for a stocks/ETFs broking platform, b
 
 
 **APK Download:**
-<<<<<<< HEAD
 - [Download APK (Google Drive)](https://drive.google.com/file/d/17RSqkujaB7lKjfHL6Qn1EgjDYrN-iVlu/view?usp=drivesdk)
-=======
-- [Download APK (Google Drive)](https://drive.google.com/file/d/17RSqkujaB7lKjfHL6Qn1EgjDYrN-iVlu/view?usp=drivesdk)
-
-
-
->>>>>>> d5ac9e7b933bc14390c0dbcba5c5ad77bf47c159

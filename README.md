@@ -1,4 +1,4 @@
-# Groww Assignment – React Native Stocks/ETFs Broking App
+#React Native Stocks/ETFs Broking App
 
 This is a feature-rich Android application for a stocks/ETFs broking platform, built with React Native and Expo. 
 ---
